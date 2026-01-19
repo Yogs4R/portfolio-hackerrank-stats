@@ -1,0 +1,185 @@
+{
+  "name": "portfolio-hackerrank-stats",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "3fb28235-e9cd-4684-8e93-f822591ba157",
+      "name": "On App Start / Manual"
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        0,
+        -144
+      ],
+      "id": "83776359-2e49-4b9c-b2fa-9e225df23a31",
+      "name": "Every 1 hour"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Ambil data respon (array models)\nconst badges = $input.first().json.models;\n\n// Variabel penampung\nlet stats = {\n  total_badges: badges.length,\n  stars: {}, // Kita simpan detail bintang per skill\n  highest_star: 0,\n  last_fetched: new Date().toISOString()\n};\n\n// Loop semua badge untuk mencari bintang\nfor (const badge of badges) {\n  const skillName = badge.badge_name; // Misal: \"Python\", \"Problem Solving\"\n  const starCount = badge.stars;\n  \n  // Simpan ke object stars (biar di frontend bisa pilih mau nampilin yang mana)\n  stats.stars[skillName] = starCount;\n\n  // Cari bintang tertinggi (misal untuk summary)\n  if (starCount > stats.highest_star) {\n    stats.highest_star = starCount;\n  }\n}\n\nreturn {\n  json: {\n    platform: \"hackerrank\",\n    stats: stats\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        464,
+        -80
+      ],
+      "id": "3a3ab974-0d4c-495b-8c95-7891b71d7f0b",
+      "name": "Filter Highest Stars"
+    },
+    {
+      "parameters": {
+        "url": "https://www.hackerrank.com/rest/hackers/ridwansuryantara/badges",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.3,
+      "position": [
+        256,
+        -80
+      ],
+      "id": "d53d235c-8723-427c-82cf-b2dcc0e77589",
+      "name": "Get Stats"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "platform_stats",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "platform",
+              "condition": "eq",
+              "keyValue": "={{ $json.platform }}"
+            }
+          ]
+        },
+        "dataToSend": "autoMapInputData"
+      },
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        672,
+        -80
+      ],
+      "id": "6707f18e-d483-42b7-a1aa-8cd46b52181b",
+      "name": "Update a row",
+      "credentials": {
+        "supabaseApi": {
+          "id": "h4k5YA7fYcsjF35W",
+          "name": "Supabase Portfolio Stats"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On App Start / Manual": {
+      "main": [
+        [
+          {
+            "node": "Get Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Every 1 hour": {
+      "main": [
+        [
+          {
+            "node": "Get Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Stats": {
+      "main": [
+        [
+          {
+            "node": "Filter Highest Stars",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Highest Stars": {
+      "main": [
+        [
+          {
+            "node": "Update a row",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3cfdf1ef-c885-45d3-977b-27c4bf7d9294",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "37c66f27f19a42458ede6336939db7c94b24476e9651972bcb9c0725fbba68b2"
+  },
+  "id": "YInPC-Ye6zX9CIZm6KSyT",
+  "tags": [
+    {
+      "updatedAt": "2026-01-14T05:14:17.060Z",
+      "createdAt": "2026-01-14T05:14:17.060Z",
+      "id": "Cjf6WX8ozlEOLcQo",
+      "name": "stats"
+    },
+    {
+      "updatedAt": "2026-01-07T04:58:37.869Z",
+      "createdAt": "2026-01-07T04:58:37.869Z",
+      "id": "W13SvI2LXyZ0LcHa",
+      "name": "n8n"
+    },
+    {
+      "updatedAt": "2026-01-14T14:52:23.496Z",
+      "createdAt": "2026-01-14T14:52:23.496Z",
+      "id": "fttW5a422WbaOq58",
+      "name": "hackerrank"
+    },
+    {
+      "updatedAt": "2026-01-14T05:14:12.090Z",
+      "createdAt": "2026-01-14T05:14:12.090Z",
+      "id": "mncJN18udUw8cVGA",
+      "name": "portfolio"
+    }
+  ]
+}
